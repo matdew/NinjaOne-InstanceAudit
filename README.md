@@ -11,7 +11,7 @@ A PowerShell module that audits a NinjaOne RMM instance and generates a self-con
 Install-Module NinjaOne -Scope CurrentUser -Force
 ```
 
-- A NinjaOne API client (Client ID + Client Secret) with scopes: `monitoring management control`
+- A NinjaOne API client (Client ID + Client Secret) with scopes: `monitoring`
 
 ## Import
 
@@ -23,7 +23,7 @@ Import-Module .\NinjaOne-InstanceAudit.psd1
 
 ```powershell
 Connect-NinjaOne -Instance us -ClientId "YOUR_CLIENT_ID" -ClientSecret "YOUR_SECRET" `
-    -Scopes @('monitoring','management','control') -UseClientAuth
+    -Scopes @('monitoring') -UseClientAuth
 
 Invoke-NinjaOneAudit
 ```
@@ -35,13 +35,13 @@ The report is written to the current directory as `NinjaOne-Audit-<timestamp>.ht
 ```powershell
 # Connect first (required before Invoke-NinjaOneAudit)
 Connect-NinjaOne -Instance us -ClientId "YOUR_CLIENT_ID" -ClientSecret "YOUR_SECRET" `
-    -Scopes @('monitoring','management','control') -UseClientAuth
+    -Scopes @('monitoring') -UseClientAuth
 
 # Optional: enable internal API checks (prompts for browser session key)
 Add-NinjaSessionKey
 
 # Run all checks, save report to a specific path
-Invoke-NinjaOneAudit -BaseUrl "https://app.ninjarmm.com" -ExportPath "C:\Reports"
+Invoke-NinjaOneAudit -ExportPath "C:\Reports"
 
 # Run only specific checks
 Invoke-NinjaOneAudit -Checks "StaleDevices","UnusedPolicies"
@@ -59,8 +59,8 @@ Invoke-NinjaOneAudit -Checks "StaleDevices","UnusedPolicies"
 
 | Parameter | Default | Description |
 |---|---|---|
-| `-SessionKey` | Prompted interactively | Browser session cookie from the NinjaOne web UI |
-| `-Instance` | Auto-detected | Shard instance (e.g. `us2`); override when shard differs from default |
+| `-Instance` | Auto-detected from `Connect-NinjaOne` | Instance identifier to override auto-detection (e.g. `us`, `eu`, `us2`) |
+| `-SessionKey` | Prompted interactively | Browser session cookie as a `SecureString` |
 
 ### `-Instance` values for `Connect-NinjaOne`
 
@@ -82,8 +82,6 @@ Invoke-NinjaOneAudit -Checks "StaleDevices","UnusedPolicies"
 | Backup Hygiene | BackupCoverage | Devices with backup jobs that do not cover all drives (requires `Add-NinjaSessionKey`) |
 
 ## Roadmap
-
-Items are organized by category, matching `TODO.txt`.
 
 **Policy Health**
 - [ ] Overridden policy conditions
@@ -107,8 +105,6 @@ Items are organized by category, matching `TODO.txt`.
 **Custom Fields**
 - [ ] Org custom fields that may be missing values
 
-**Refactoring**
-- [ ] Add internal API lookup methodology
 
 ## Adding a New Check
 
@@ -134,9 +130,10 @@ Some NinjaOne data is only available through internal web endpoints not covered 
 The session key is a browser cookie obtained from an active NinjaOne web UI session. It expires when the browser session ends. Checks that require it will skip gracefully (returning no findings) when the session key is absent.
 
 ```powershell
-# Interactive prompt
+# Interactive prompt (recommended)
 Add-NinjaSessionKey
 
-# Or pass directly
-Add-NinjaSessionKey -SessionKey "your-session-key-here"
+# Or pass as SecureString
+$key = ConvertTo-SecureString "your-session-key-here" -AsPlainText -Force
+Add-NinjaSessionKey -SessionKey $key
 ```
