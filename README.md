@@ -51,7 +51,6 @@ Invoke-NinjaOneAudit -Checks "StaleDevices","UnusedPolicies"
 
 | Parameter | Default | Description |
 |---|---|---|
-| `-BaseUrl` | `https://app.ninjarmm.com` | NinjaOne instance base URL |
 | `-ExportPath` | Current directory | Directory to save the HTML report |
 | `-Checks` | All checks | Names of specific checks to run (e.g. `"StaleDevices"`) |
 
@@ -61,14 +60,6 @@ Invoke-NinjaOneAudit -Checks "StaleDevices","UnusedPolicies"
 |---|---|---|
 | `-Instance` | Auto-detected from `Connect-NinjaOne` | Instance identifier to override auto-detection (e.g. `us`, `eu`, `us2`) |
 | `-SessionKey` | Prompted interactively | Browser session cookie as a `SecureString` |
-
-### `-Instance` values for `Connect-NinjaOne`
-
-| BaseUrl | Instance |
-|---|---|
-| `app.ninjarmm.com` | `us` |
-| `eu.ninjarmm.com` | `eu` |
-| `oc.ninjarmm.com` | `oc` |
 
 ## Implemented Checks
 

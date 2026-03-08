@@ -12,7 +12,6 @@ function Invoke-NinjaAuditOrchestrator {
         [string[]]$Checks
     )
 
-    # Use List to avoid O(n^2) array allocation from += in loop
     $allFindings = [System.Collections.Generic.List[object]]::new()
 
     foreach ($entry in $Catalog.GetEnumerator()) {
@@ -36,12 +35,12 @@ function Invoke-NinjaAuditOrchestrator {
 
             # Emit a Critical finding so the failure is visible in the report
             $allFindings.Add((New-NinjaFinding `
-                -Category      $checkName `
-                -Severity      'Critical' `
-                -Title         "Check Execution Error: $checkName" `
-                -Detail        $_.Exception.Message `
-                -AffectedCount 0 `
-                -AffectedItems @()))
+                        -Category $checkName `
+                        -Severity 'Critical' `
+                        -Title "Check Execution Error: $checkName" `
+                        -Detail $_.Exception.Message `
+                        -AffectedCount 0 `
+                        -AffectedItems @()))
         }
     }
 

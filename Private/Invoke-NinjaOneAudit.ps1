@@ -10,9 +10,6 @@ function Invoke-NinjaOneAudit {
     backed audit checks.
     Returns the collected findings array for pipeline use.
 
-    .PARAMETER BaseUrl
-    NinjaOne instance base URL. Default: https://app.ninjarmm.com
-
     .PARAMETER ExportPath
     (Optional) Directory to save the HTML report. Defaults to the current working directory.
 
@@ -28,13 +25,11 @@ function Invoke-NinjaOneAudit {
 
     .EXAMPLE
     Connect-NinjaOne -Instance us -ClientId 'abc123' -ClientSecret 'secret' -Scopes @('monitoring','management','control') -UseClientAuth
-    Add-NinjaSessionKey -ShardBaseUrl 'https://us2.ninjarmm.com/swb/s3'
+    Add-NinjaSessionKey -Instance us2
     Invoke-NinjaOneAudit
     #>
     [CmdletBinding()]
     param (
-        [string]$BaseUrl = 'https://app.ninjarmm.com',
-
         [string]$ExportPath,
 
         [string[]]$Checks
@@ -45,15 +40,22 @@ function Invoke-NinjaOneAudit {
     $InformationPreference = 'Continue'
 
     try {
+        $ninjaModule = Get-Module -Name NinjaOne
+        $baseUrl = if ($ninjaModule) {
+            & $ninjaModule { $Script:NRAPIConnectionInformation.URL }
+        } else {
+            'https://app.ninjarmm.com'
+        }
+
         $authContext = @{
-            BaseUrl            = $BaseUrl
+            BaseUrl            = $baseUrl
             ShardBaseUrl       = $script:NinjaAuditShardBaseUrl
             SessionKey         = $script:NinjaAuditSessionKey
             TenantCapabilities = $script:NinjaAuditTenantCapabilities
         }
 
         Write-Information "`nNinjaOne Instance Health Audit"
-        Write-Information "Instance: $BaseUrl"
+        Write-Information "Instance: $baseUrl"
         Write-Information ('-' * 50)
 
         if (-not $script:NinjaAuditShardBaseUrl) {
@@ -81,7 +83,7 @@ function Invoke-NinjaOneAudit {
         Write-Information "`n[2/2] Generating HTML report..."
         $reportPath = New-NinjaHealthReport `
             -Findings   $allFindings `
-            -BaseUrl    $BaseUrl `
+            -BaseUrl    $baseUrl `
             -ExportPath $ExportPath
 
         Write-Information "      Report saved: $reportPath"
